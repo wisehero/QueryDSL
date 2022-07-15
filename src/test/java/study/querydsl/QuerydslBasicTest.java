@@ -3,6 +3,8 @@ package study.querydsl;
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -24,10 +26,11 @@ public class QuerydslBasicTest {
 	@PersistenceContext
 	EntityManager em;
 
-	JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+	JPAQueryFactory queryFactory;
 
 	@BeforeEach
 	void before() {
+		queryFactory = new JPAQueryFactory(em);
 		Team teamA = new Team("teamA");
 		Team teamB = new Team("teamB");
 		em.persist(teamA);
@@ -79,5 +82,26 @@ public class QuerydslBasicTest {
 			.fetchOne();
 
 		assertThat(findMember.getUsername()).isEqualTo("member1");
+	}
+
+	@Test
+	void search() {
+		Member findMember = queryFactory.selectFrom(member)
+			.where(member.username.eq("member1")
+				.and(member.age.eq(10)))
+			.fetchOne();
+
+		assertThat(findMember.getUsername()).isEqualTo("member1");
+	}
+
+	@Test
+	void searchAndParam() {
+		List<Member> result1 = queryFactory
+			.selectFrom(member)
+			.where(member.username.eq("member1"),
+				member.age.eq(10))
+			.fetch();
+
+		assertThat(result1.size()).isEqualTo(1);
 	}
 }
