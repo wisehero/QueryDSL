@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import static com.querydsl.jpa.JPAExpressions.*;
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
 import static study.querydsl.entity.QTeam.*;
@@ -267,4 +268,46 @@ public class QuerydslBasicTest {
 		boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
 		assertThat(loaded).as("페치 조인 적용").isTrue();
 	}
+
+	@Test
+	void subQuery() {
+		QMember memberSub = new QMember("memberSub");
+
+		List<Member> result = queryFactory.selectFrom(member)
+			.where(member.age.eq(select(memberSub.age.max())
+				.from(memberSub)))
+			.fetch();
+
+		assertThat(result).extracting("age").containsExactly(40);
+	}
+
+	@Test
+	void subQueryGoe() {
+		QMember memberSub = new QMember("memberSub");
+
+		List<Member> result = queryFactory.selectFrom(member)
+			.where(member.age.goe(
+				select(memberSub.age.avg())
+					.from(memberSub)
+			))
+			.fetch();
+
+		assertThat(result).extracting("age").containsExactly(30, 40);
+	}
+
+	@Test
+	void subQueryIn() {
+		QMember memberSub = new QMember("memberSub");
+
+		List<Member> result = queryFactory.selectFrom(member)
+			.where(member.age.in(
+				select(memberSub.age)
+					.from(memberSub)
+					.where(memberSub.age.gt(10))
+			)).fetch();
+
+		assertThat(result).extracting("age")
+			.containsExactly(20, 30, 40);
+	}
+
 }
