@@ -22,6 +22,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import study.querydsl.dto.MemberDto;
@@ -388,5 +389,16 @@ public class QuerydslBasicTest {
 		for (Member member1 : result) {
 			System.out.println("member1 = " + member1);
 		}
+	}
+
+	@Test
+	void sqlFunction() {
+		String s = queryFactory
+			.select(
+				Expressions.stringTemplate("function('replace', {0}, {1}, {2})", member.username, "member", "M"))
+			.from(member)
+			.fetchFirst();
+
+		System.out.println(s);
 	}
 }
