@@ -371,4 +371,22 @@ public class QuerydslBasicTest {
 	private BooleanExpression allEq(String usernameCond, Integer ageCond) {
 		return usernameEq(usernameCond).and(ageEq(ageCond));
 	}
+
+	@Test
+	void bulkUpdate() {
+		long count = queryFactory
+			.update(member)
+			.set(member.username, "비회원")
+			.where(member.age.lt(28))
+			.execute();
+
+		// 벌크 연산은 실행 직후 영속성 컨텍스트를 비워줘야 한다.
+		em.flush();
+		em.clear();
+
+		List<Member> result = queryFactory.selectFrom(member).fetch();
+		for (Member member1 : result) {
+			System.out.println("member1 = " + member1);
+		}
+	}
 }
